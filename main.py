@@ -12,10 +12,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Deep SRL tagger.')
 
     parser.add_argument('--mode', default='train', help='train/predict')
-    parser.add_argument('--task', default='srl', help='srl/isrl/pi')
+    parser.add_argument('--task', default='isrl', help='isrl/lp/pi')
     parser.add_argument('--action', default='shift_and_label', help='shift/label/shift_and_label')
     parser.add_argument('--online', action='store_true', default=False, help='online mode')
-    parser.add_argument('--test', action='store_true', default=False, help='unit test')
 
     ##################
     # Input Datasets #
@@ -87,25 +86,49 @@ if __name__ == '__main__':
     parser.add_argument('--load_label', default=None, help='path to label ids')
 
     argv = parser.parse_args()
-    print
-    print argv
-    print
 
-    if argv.task == 'srl':
-        from srl.lp.app import App
+    from srl.utils import write
 
-        App(argv).run()
-    elif argv.task == 'isrl':
-        from srl.isrl.app import App
+    write('\nSYSTEM START')
 
-        App(argv).run()
+    if argv.task == 'isrl':
+        from srl.isrl import MulSeqTrainer, MulSeqPredictor, ISRLPreprocessor, ISRLSystemAPI
+
+        if argv.mode == 'train':
+            write('\nMODE: Training')
+            MulSeqTrainer(argv=argv,
+                          preprocessor=ISRLPreprocessor,
+                          model_api=ISRLSystemAPI).run()
+        else:
+            write('\nMODE: Predicting')
+            MulSeqPredictor(argv=argv,
+                            preprocessor=ISRLPreprocessor,
+                            model_api=ISRLSystemAPI).run()
+
+    elif argv.task == 'lp':
+        from srl.lp import Trainer, Predictor, Preprocessor, BaseModelAPI
+
+        if argv.mode == 'train':
+            write('\nMODE: Training')
+            Trainer(argv=argv,
+                    preprocessor=Preprocessor,
+                    model_api=BaseModelAPI).run()
+        else:
+            write('\nMODE: Predicting')
+            Predictor(argv=argv,
+                      preprocessor=Preprocessor,
+                      model_api=BaseModelAPI).run()
 
     elif argv.task == 'pi':
-        from srl.pi.app import App
+        from srl.pi import PITrainer, PIPredictor, PIPreprocessor, PIModelAPI
 
-        App(argv).run()
-    elif argv.task == 'eval':
-        from srl.utils.evaluators import ISRLEvaluator
-
-        evaluator = ISRLEvaluator(argv)
-        evaluator.eval()
+        if argv.mode == 'train':
+            write('\nMODE: Training')
+            PITrainer(argv=argv,
+                      preprocessor=PIPreprocessor,
+                      model_api=PIModelAPI).run()
+        else:
+            write('\nMODE: Predicting')
+            PIPredictor(argv=argv,
+                        preprocessor=PIPreprocessor,
+                        model_api=PIModelAPI).run()
