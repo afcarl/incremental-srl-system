@@ -2,15 +2,14 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-from . import BaseModel, PIModel
+from ..models import LPModel, PIModel
 
 
 class ISRLSystem(object):
-    def __init__(self, inputs, shift_model, label_model, pot_label_model=None):
+    def __init__(self, inputs, shift_model, label_model):
         self.inputs = inputs
         self.shift_model = shift_model
         self.label_model = label_model
-        self.pot_label_model = pot_label_model
 
         self.stack_a = theano.shared(value=np.zeros((5, 1, len(inputs)), dtype='int32'),
                                      name='stack_a',
@@ -339,7 +338,7 @@ class ShiftModel(PIModel):
         return T.inc_subtensor(zeros[:time_step + 1], 1)
 
 
-class LabelModel(BaseModel):
+class LabelModel(LPModel):
     def get_label_proba(self, stack_a, stack_p, time_step):
         """
         :param stack_a: 1D: n_words(arg), 2D: batch_size, 3D: n_inputs; elem=feat id

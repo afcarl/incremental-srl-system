@@ -1,7 +1,8 @@
-from . import write, Predictor
+from ..utils import write
+from ..predictors import Predictor
 
 
-class MulSeqPredictor(Predictor):
+class ISRLPredictor(Predictor):
     def run(self):
         argv = self.argv
 
@@ -211,18 +212,6 @@ class MulSeqPredictor(Predictor):
                                                                time_step)
         return self.model_api.predict_online_shift_and_label(sample)
 
-    @staticmethod
-    def _show_result(input_sent, vocab_label, prd_indices_pred, labels_pred):
-        for prd_index, labels_prd in zip(prd_indices_pred, labels_pred):
-            prd = input_sent[prd_index]
-            print 'PRD:%s' % prd
-            for time_step, labels_t in enumerate(labels_prd):
-                labels = [vocab_label.get_word(label_id) for label_id in labels_t[:time_step + 1]]
-                if prd_index < len(labels):
-                    labels[prd_index] = 'PRD'
-                text = map(lambda (x, y): '%s/%s' % (x, y), zip(input_sent, labels))
-                print '-%d  %s' % (time_step + 1, ' '.join(text))
-
     def _predict_label(self, samples):
         self.model_api.load_label_model_params()
         self.model_api.set_predict_label_func()
@@ -244,3 +233,4 @@ class MulSeqPredictor(Predictor):
         print '\t',
         samples = self.model_api.predict_shift_and_label(samples)
         self.saver.save_isrl_props(samples, self.model_api.vocab_label)
+

@@ -156,4 +156,3 @@ class PIPredictor(Predictor):
         # Testing #
         ###########
         labels_pred = self.model_api.predict(batches)
-

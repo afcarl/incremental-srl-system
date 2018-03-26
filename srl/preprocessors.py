@@ -65,13 +65,6 @@ class Preprocessor(object):
     def make_samples(corpus):
         raise NotImplementedError
 
-    def make_batches(self, samples):
-        raise NotImplementedError
-
-    @staticmethod
-    def make_test_batches(corpus):
-        raise NotImplementedError
-
     @staticmethod
     def separate_x_and_y_in_batch(batches, index=1):
         """
