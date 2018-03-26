@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--mode', default='train', help='train/predict')
     parser.add_argument('--task', default='isrl', help='isrl/lp/pi')
-    parser.add_argument('--action', default='shift_and_label', help='shift/label/shift_and_label')
+    parser.add_argument('--action', default='pi_lp', help='pi_lp/lp')
     parser.add_argument('--online', action='store_true', default=False, help='online mode')
 
     ##################
@@ -77,12 +77,10 @@ if __name__ == '__main__':
     # Loading Options #
     ###################
     parser.add_argument('--load_param', default=None, help='path to params')
-    parser.add_argument('--load_pi_param', default=None, help='path to params')
-    parser.add_argument('--load_shift_model_param', default=None, help='path to params')
-    parser.add_argument('--load_label_model_param', default=None, help='path to params')
-    parser.add_argument('--load_word', default=None, help='path to word ids')
-    parser.add_argument('--load_pi_word', default=None, help='path to params')
     parser.add_argument('--load_label', default=None, help='path to label ids')
+    parser.add_argument('--load_word', default=None, help='path to word ids')
+    parser.add_argument('--load_pi_param', default=None, help='path to params')
+    parser.add_argument('--load_lp_param', default=None, help='path to params')
 
     argv = parser.parse_args()
 
@@ -91,18 +89,13 @@ if __name__ == '__main__':
     write('\nSYSTEM START')
 
     if argv.task == 'isrl':
-        from srl.isrl import MulSeqTrainer, MulSeqPredictor, ISRLPreprocessor, ISRLSystemAPI
+        from srl.isrl.predictors import ISRLPredictor
+        from srl.isrl.preprocessors import ISRLPreprocessor
+        from srl.isrl.model_api import ISRLSystemAPI
 
-        if argv.mode == 'train':
-            write('\nMODE: Training')
-            MulSeqTrainer(argv=argv,
-                          preprocessor=ISRLPreprocessor,
-                          model_api=ISRLSystemAPI).run()
-        else:
-            write('\nMODE: Predicting')
-            MulSeqPredictor(argv=argv,
-                            preprocessor=ISRLPreprocessor,
-                            model_api=ISRLSystemAPI).run()
+        ISRLPredictor(argv=argv,
+                      preprocessor=ISRLPreprocessor,
+                      model_api=ISRLSystemAPI).run()
 
     elif argv.task == 'lp':
         from srl.trainers import LPTrainer

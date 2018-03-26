@@ -191,6 +191,21 @@ class LSTM(Unit):
         h_t = o_t * tanh(c_t)
         return h_t, c_t
 
+    def _step_masked(self, xi_t, xf_t, xc_t, xo_t, mask_t, h_tm1, c_tm1):
+        """
+        :param x_t: 1D: Batch, 2D: n_in
+        :param h_tm1: 1D: Batch, 2D: n_h
+        :param c_tm1: 1D: Batch, 2D; n_h
+        :return: h_t: 1D: Batch, 2D: n_h
+        :return: c_t: 1D: Batch, 2D: n_h
+        """
+        i_t = sigmoid(xi_t + T.dot(h_tm1, self.W_hi) + c_tm1 * self.W_ci)
+        f_t = sigmoid(xf_t + T.dot(h_tm1, self.W_hf) + c_tm1 * self.W_cf)
+        c_t = mask_t * (f_t * c_tm1 + i_t * tanh(xc_t + T.dot(h_tm1, self.W_hc))) + (1 - mask_t) * c_tm1
+        o_t = sigmoid(xo_t + T.dot(h_tm1, self.W_ho) + c_t * self.W_co)
+        h_t = mask_t * (o_t * tanh(c_t)) + (1 - mask_t) * h_tm1
+        return h_t, c_t
+
     def forward(self, x, h0=None, mask=None):
         xi = T.dot(x, self.W_xi) + self.b_xi
         xf = T.dot(x, self.W_xf) + self.b_xf
@@ -203,7 +218,13 @@ class LSTM(Unit):
             h0 = T.zeros(shape=(x[0].shape[0], self.output_dim), dtype=theano.config.floatX)
         c0 = T.zeros(shape=(x[0].shape[0], self.output_dim), dtype=theano.config.floatX)
 
-        [h, _], _ = theano.scan(fn=self._step,
+        if mask is None:
+            step = self._step
+        else:
+            step = self._step_masked
+            inputs += [mask]
+
+        [h, _], _ = theano.scan(fn=step,
                                 sequences=inputs,
                                 outputs_info=[h0, c0])
         return h

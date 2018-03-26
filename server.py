@@ -3,10 +3,6 @@ import argparse
 import pickle
 import theano
 
-from srl.isrl.mulseq.predictors import MulSeqPredictor
-from srl.isrl.mulseq.preprocessors import ISRLPreprocessor
-from srl.isrl.mulseq.model_api import ISRLSystemAPI
-
 theano.config.floatX = 'float32'
 
 # Server setting
@@ -41,7 +37,6 @@ def get_argv():
 
     parser.add_argument('--opt_type', default='adam', help='sgd/adagrad/adadelta/adam')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
-    parser.add_argument('--halve_lr', action='store_true', default=False, help='halve learning rate')
     parser.add_argument('--grad_clip', action='store_true', default=False, help='gradient clipping')
     parser.add_argument('--reg', type=float, default=0.0001, help='L2 Reg rate')
     parser.add_argument('--drop_rate', type=float, default=0.0, help='Dropout Rate')
@@ -60,17 +55,16 @@ def get_argv():
 
 
 if __name__ == '__main__':
+    from srl.isrl.predictors import ISRLPredictor
+    from srl.isrl.preprocessors import ISRLPreprocessor
+    from srl.isrl.model_api import ISRLSystemAPI
+
     # Main loop
     while True:
-
-        argv = get_argv()
-        predictor = MulSeqPredictor(argv=argv,
-                                    preprocessor=ISRLPreprocessor,
-                                    model_api=ISRLSystemAPI)
-        predictor.set_server_mode()
-        predictor.model_api.load_shift_model_params()
-        predictor.model_api.load_label_model_params()
-        predictor.model_api.set_predict_online_shift_and_label_func()
+        predictor = ISRLPredictor(argv=get_argv(),
+                                  preprocessor=ISRLPreprocessor,
+                                  model_api=ISRLSystemAPI)
+        predictor.run_server_mode()
         vocab_label = predictor.model_api.vocab_label
 
         # Wait socket connection
@@ -99,8 +93,8 @@ if __name__ == '__main__':
             if command == "srl":
                 text = ""
                 for word in words:
-                    stack_a, stack_p, shift_proba, label_proba, label_pred = predictor.predict_server(word,
-                                                                                                      time_step)
+                    stack_a, stack_p, shift_proba, label_proba, label_pred = predictor.predict_server_mode(word,
+                                                                                                           time_step)
                     sent.append(word)
                     for w, p in zip(sent, stack_p):
                         text += '%s/%s ' % (w, p)
@@ -119,7 +113,7 @@ if __name__ == '__main__':
 
                     time_step += 1
                 output = pickle.dumps(stack_p)
-#                client_socket.send(text)
+                #                client_socket.send(text)
                 client_socket.send(output)
 
         client_socket.close()

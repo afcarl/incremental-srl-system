@@ -18,13 +18,13 @@ class ISRLSystemAPI(ModelAPI):
         self.predict_shift_and_label_func = None
 
     def load_shift_model_params(self):
-        params = self.load_data(self.argv.load_shift_model_param)
+        params = self.load_data(self.argv.load_pi_param)
         assert len(self.model.shift_model.params) == len(params)
         for p1, p2 in zip(self.model.shift_model.params, params):
             p1.set_value(p2)
 
     def load_label_model_params(self):
-        params = self.load_data(self.argv.load_label_model_param)
+        params = self.load_data(self.argv.load_lp_param)
         assert len(self.model.label_model.params) == len(params)
         for p1, p2 in zip(self.model.label_model.params, params):
             p1.set_value(p2)
@@ -35,7 +35,6 @@ class ISRLSystemAPI(ModelAPI):
         self.vocab_word_corpus = kwargs['vocab_word_corpus']
         self.vocab_word_emb = kwargs['vocab_word_emb']
         self.vocab_label = kwargs['vocab_label']
-        self.vocabs = [self.vocab_word_corpus, self.vocab_word_emb, self.vocab_label]
 
         self.input_dim = kwargs['init_emb'].shape[1] if kwargs['init_emb'] is not None else argv.emb_dim
         self.hidden_dim = argv.hidden_dim
@@ -107,47 +106,41 @@ class ISRLSystemAPI(ModelAPI):
         assert len(x) > 0
         return x
 
-    def set_predict_shift_func(self):
-        write('\nBuilding a predict shift func...')
+    def set_predict_func(self):
+        write('\nBuilding a predict func...')
 
-        shift_proba = self.model.get_shift_proba()
-        shift_proba = shift_proba.dimshuffle(1, 0)
+        shift_proba, label_proba, stack_a, stack_p = self.model.get_shift_and_label_proba()
+
+        # 1D: time_steps, 2D: batch_size; elem=shift id
         shift_pred = T.gt(shift_proba, 0.5)
+        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
+        label_pred = self.model.argmax_label_proba(label_proba)
 
-        self.predict_shift_func = theano.function(
+        self.predict_shift_and_label_func = theano.function(
             inputs=self.model.inputs,
-            outputs=shift_pred,
+            outputs=[shift_pred,
+                     label_pred,
+                     ],
             mode='FAST_RUN',
         )
 
-    def set_predict_online_shift_func(self):
-        write('\nBuilding a predict online shift func...')
+    def set_predict_given_gold_prds_func(self):
+        write('\nBuilding a predict label func...')
+        print self.model.inputs
 
-        x = []
-        if self.vocab_word_corpus:
-            x.append(T.ivector('x_word_corpus'))
-        if self.vocab_word_emb:
-            x.append(T.ivector('x_word_emb'))
-        time_step = T.iscalar('time_step')
+        y_shift = T.imatrix('y_shift')
+        label_proba, stack_a, stack_p = self.model.get_label_proba_with_oracle_shift(y_shift)
 
-        stack_a = self.model.update_stack_a(x, time_step)
-        shift_proba = self.model.get_shift_proba_online(stack_a, time_step)
-        shift_id = self.model.get_shift_id(shift_proba)
-        stack_p = self.model.update_stack_p(shift_id, time_step)
+        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
+        y_label_pred = self.model.argmax_label_proba(label_proba)
 
-        updates = [(self.model.stack_a, stack_a),
-                   (self.model.stack_p, stack_p)]
-
-        self.predict_shift_func = theano.function(
-            inputs=x + [time_step],
-            outputs=[stack_a[:, 0].flatten(),
-                     T.sum(stack_p[:, 0], axis=0),
-                     shift_proba],
-            updates=updates,
+        self.predict_label_func = theano.function(
+            inputs=self.model.inputs + [y_shift],
+            outputs=y_label_pred,
             mode='FAST_RUN',
         )
 
-    def set_predict_online_shift_and_label_func(self):
+    def set_predict_online_func(self):
         write('\nBuilding a predict online shift and label func...')
 
         x = []
@@ -183,74 +176,7 @@ class ISRLSystemAPI(ModelAPI):
             on_unused_input='warn'
         )
 
-    def set_predict_label_func(self):
-        write('\nBuilding a predict label func...')
-        print self.model.inputs
-
-        y_shift = T.imatrix('y_shift')
-        label_proba, stack_a, stack_p = self.model.get_label_proba_with_oracle_shift(y_shift)
-
-        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
-        y_label_pred = self.model.argmax_label_proba(label_proba)
-
-        self.predict_label_func = theano.function(
-            inputs=self.model.inputs + [y_shift],
-            outputs=y_label_pred,
-            mode='FAST_RUN',
-        )
-
-    def set_predict_shift_and_label_func(self):
-        write('\nBuilding a predict shift and label func...')
-
-        shift_proba, label_proba, stack_a, stack_p = self.model.get_shift_and_label_proba()
-
-        # 1D: time_steps, 2D: batch_size; elem=shift id
-        shift_pred = T.gt(shift_proba, 0.5)
-        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
-        label_pred = self.model.argmax_label_proba(label_proba)
-
-        self.predict_shift_and_label_func = theano.function(
-            inputs=self.model.inputs,
-            outputs=[shift_pred,
-                     label_pred,
-                     ],
-            mode='FAST_RUN',
-        )
-
-    def predict_shift(self, batches):
-        labels = []
-        start = time.time()
-        for index, batch in enumerate(batches):
-            if (index + 1) % 100 == 0:
-                print '%d' % (index + 1),
-                sys.stdout.flush()
-
-            if len(batch) == 0:
-                label_pred = []
-            else:
-                label_pred = self.predict_shift_func(*batch)
-            labels.append(label_pred)
-        write('\n\tTime: %f seconds' % (time.time() - start))
-        return labels
-
-    def predict_label(self, batches):
-        y = []
-        start = time.time()
-        for index, batch in enumerate(batches):
-            if (index + 1) % 100 == 0:
-                print '%d' % (index + 1),
-                sys.stdout.flush()
-
-            if len(batch[0][0]) < 2 or np.sum(batch[-1]) < 1:
-                y_i = [[0]]
-            else:
-                y_i = self.predict_label_func(*batch)
-            y.append(y_i)
-
-        write('\n\tTime: %f seconds' % (time.time() - start))
-        return y
-
-    def predict_shift_and_label(self, samples):
+    def predict(self, samples):
         start = time.time()
 
         for index, sent in enumerate(samples):
@@ -275,36 +201,23 @@ class ISRLSystemAPI(ModelAPI):
         write('\n\tTime: %f seconds' % (time.time() - start))
         return samples
 
-    def predict_online_shift(self, sample):
-        stack_a, stack_p, shift_proba = self.predict_shift_func(*sample)
-        return stack_a, stack_p, shift_proba
+    def predict_given_gold_prds(self, batches):
+        y = []
+        start = time.time()
+        for index, batch in enumerate(batches):
+            if (index + 1) % 100 == 0:
+                print '%d' % (index + 1),
+                sys.stdout.flush()
 
-    def predict_online_shift_and_label(self, sample):
-        stack_a, stack_p, shift_proba, label_proba, label_pred = self.predict_shift_and_label_func(*sample)
-        return stack_a, stack_p, shift_proba, label_proba, label_pred
+            if len(batch[0][0]) < 2 or np.sum(batch[-1]) < 1:
+                y_i = [[0]]
+            else:
+                y_i = self.predict_label_func(*batch)
+            y.append(y_i)
+
+        write('\n\tTime: %f seconds' % (time.time() - start))
+        return y
 
     def predict_online(self, sample):
-        if len(sample[0][0]) < 2:
-            prd_indices = []
-            labels = [[0]]
-        else:
-            shifts, labels = self.predict_shift_and_label_func(*sample)
-            prd_indices = self._convert_shifts_to_prd_indices(shifts)
-            labels = self._convert_labels_to_prd_labels(labels, prd_indices)
-        return prd_indices, labels
-
-    @staticmethod
-    def _convert_shifts_to_prd_indices(shifts):
-        return [i for i, shift in enumerate(shifts.flatten()) if shift > 0]
-
-    @staticmethod
-    def _convert_labels_to_prd_labels(labels, prd_indices):
-        """
-        :param labels: 1D: time_steps, 2D: n_words * n_words; elem=label id
-        :param prd_indices: 1D: n_prds; elem=word index
-        :return: 1D: n_prds, 2D: time_steps, 3D: n_words(arg); elem=label id
-        """
-        n_words = len(labels)
-        # 1D: time_steps, 2D: n_words(prd), 3D: n_words(arg); elem=label id
-        labels = np.reshape(labels, (n_words, n_words, n_words))
-        return [labels[:, p_index] for p_index in prd_indices]
+        stack_a, stack_p, shift_proba, label_proba, label_pred = self.predict_shift_and_label_func(*sample)
+        return stack_a, stack_p, shift_proba, label_proba, label_pred
