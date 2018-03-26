@@ -1,3 +1,4 @@
+import os
 from utils import write, Evaluator, CoNLL09Loader, EmbeddingLoader, CoNLL09Saver
 
 
@@ -62,9 +63,10 @@ class Trainer(object):
         if argv.save:
             if vocab_word_corpus:
                 if argv.output_fn:
-                    fn = 'word_ids.' + argv.output_fn
+                    fn = 'param/word.' + argv.output_fn
                 else:
-                    fn = 'word_ids.size-%d' % vocab_word_corpus.size()
+                    fn = 'param/word.' + argv.task
+
                 values, keys = map(lambda x: x, zip(*enumerate(vocab_word_corpus.i2w)))
                 self.saver.save_key_value_format(fn=fn, keys=keys, values=values)
 
@@ -85,14 +87,15 @@ class Trainer(object):
 
         if argv.save:
             if argv.output_fn:
-                fn_d = 'label_ids.' + argv.output_fn
+                fn_d = 'param/label.' + argv.output_fn
             else:
-                fn_d = 'label_ids.size-%d' % vocab_label_train.size()
+                fn_d = 'param/label.' + argv.task
+
             values_d, keys_d = map(lambda x: x, zip(*enumerate(vocab_label_train.i2w)))
             self.saver.save_key_value_format(fn=fn_d, keys=keys_d, values=values_d)
 
         write('\t# Labels %d' % vocab_label_train.size())
-        print "\t%s" % str(vocab_label_train.i2w)
+        write("\t%s" % str(vocab_label_train.i2w))
         return vocab_label_train, vocab_label_dev
 
     def _set_sent_params(self, train_corpus, dev_corpus,
@@ -138,6 +141,10 @@ class LPTrainer(Trainer):
     def run(self):
         argv = self.argv
 
+        if argv.save:
+            if not os.path.exists('param'):
+                os.mkdir('param')
+
         train_corpus, dev_corpus = self._load_corpus(argv=argv)
         train_corpus, dev_corpus = self._make_sents(train_corpus=train_corpus,
                                                     dev_corpus=dev_corpus)
@@ -178,16 +185,6 @@ class LPTrainer(Trainer):
         best_dev_f = 0.0
         best_epoch = -1
 
-        if self.argv.load_param:
-            write('\nEpoch: 0 (Using the Pre-trained Params)')
-            if dev_batch_x:
-                write('  DEV')
-                print '\t',
-                dev_batch_y_pred = self.model_api.predict(dev_batch_x)
-                best_dev_f = self.evaluator.f_measure_for_label(y_true=dev_batch_y,
-                                                                y_pred=dev_batch_y_pred,
-                                                                vocab_label=vocab_label_dev)
-
         for epoch in xrange(self.argv.epoch):
             write('\nEpoch: %d' % (epoch + 1))
             write('  TRAIN')
@@ -217,6 +214,10 @@ class LPTrainer(Trainer):
 class PITrainer(Trainer):
     def run(self):
         argv = self.argv
+
+        if argv.save:
+            if not os.path.exists('param'):
+                os.mkdir('param')
 
         train_corpus, dev_corpus = self._load_corpus(argv=argv)
         train_corpus, dev_corpus = self._make_sents(train_corpus=train_corpus,
@@ -252,15 +253,6 @@ class PITrainer(Trainer):
         f1_history = {}
         best_dev_f = 0.0
         best_epoch = -1
-
-        if self.argv.load_param:
-            write('\nEpoch: 0 (Using the Pre-trained Params)')
-            if dev_batch_x:
-                write('  DEV')
-                print '\t',
-                dev_batch_y_pred = self.model_api.predict(dev_batch_x)
-                best_dev_f = self.evaluator.f_measure_for_pi(y_true=dev_batch_y,
-                                                             y_pred=dev_batch_y_pred)
 
         for epoch in xrange(self.argv.epoch):
             write('\nEpoch: %d' % (epoch + 1))

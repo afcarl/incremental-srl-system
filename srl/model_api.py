@@ -59,25 +59,12 @@ class ModelAPI(object):
     def save_params(self):
         argv = self.argv
         if argv.output_fn:
-            fn = 'param.' + argv.output_fn
+            fn = 'param/param.' + argv.output_fn
         else:
-            fn = 'param.unit-%s.e-%d.h-%d' % (argv.n_layers, argv.emb_dim, argv.hidden_dim)
+            fn = 'param/param.' + argv.task
+
         params = [p.get_value(borrow=True) for p in self.model.params]
         self.save_data(data=params, fn=fn)
-
-    def save_embeddings(self):
-        argv = self.argv
-        for i, layer in enumerate(self.model.input_layers[:-1]):
-            if len(layer.params) == 0:
-                continue
-            emb = layer.W.get_value(borrow=True)
-            if argv.output_fn:
-                fn = 'emb-%d.%s.txt' % (i, argv.output_fn)
-            else:
-                fn = 'emb-%d.%dx%d.txt' % (i, len(emb), len(emb[0]))
-            with open(fn, 'w') as f:
-                for j, w in enumerate(self.vocabs[i].i2w):
-                    print >> f, w.encode('utf-8') + '\t' + ' '.join(map(lambda e: str(e), emb[j]))
 
     def load_params(self, path):
         params = self.load_data(path)
