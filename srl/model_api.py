@@ -115,7 +115,7 @@ class LPModelAPI(ModelAPI):
         return x
 
     def set_train_func(self):
-        write('\nBuilding an srl train func...')
+        write('\nBuilding an lp train func...')
         y_label = T.imatrix('y')
 
         label_proba = self.model.calc_label_proba(self.model.inputs)
@@ -139,7 +139,7 @@ class LPModelAPI(ModelAPI):
         )
 
     def set_pred_func(self):
-        write('\nBuilding an srl predict func...')
+        write('\nBuilding an lp predict func...')
         label_proba = self.model.calc_label_proba(self.model.inputs)
         y_pred = self.model.argmax_label_proba(label_proba)
 
