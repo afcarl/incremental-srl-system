@@ -24,9 +24,9 @@ class Model(object):
             self.params += l.params
 
 
-class LabelPredictionModel(Model):
+class LPModel(Model):
     def __init__(self):
-        super(LabelPredictionModel, self).__init__()
+        super(LPModel, self).__init__()
         self.feat_layer = None
         self.label_layer = None
 
@@ -70,9 +70,9 @@ class LabelPredictionModel(Model):
         return T.sum(T.log(true_label_proba), axis=1)
 
 
-class PredicateIdentificationModel(Model):
+class PIModel(Model):
     def __init__(self):
-        super(PredicateIdentificationModel, self).__init__()
+        super(PIModel, self).__init__()
         self.feat_layer = None
         self.label_layer = None
 

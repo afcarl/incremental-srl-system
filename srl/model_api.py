@@ -10,7 +10,7 @@ import theano.tensor as T
 
 from utils import write
 from nn import categorical_accuracy, get_optimizer, L2Regularizer
-from models import LabelPredictionModel, PredicateIdentificationModel
+from models import LPModel, PIModel
 
 
 class ModelAPI(object):
@@ -86,7 +86,7 @@ class ModelAPI(object):
             p1.set_value(p2)
 
 
-class LabelPredictionModelAPI(ModelAPI):
+class LPModelAPI(ModelAPI):
     def set_model(self, **kwargs):
         argv = self.argv
 
@@ -100,7 +100,7 @@ class LabelPredictionModelAPI(ModelAPI):
         self.output_dim = kwargs['vocab_label'].size()
 
         inputs = self._set_inputs()
-        self.model = LabelPredictionModel()
+        self.model = LPModel()
         self.model.compile(
             inputs=inputs,
             vocab_word_corpus_size=self.vocab_word_corpus.size() if self.vocab_word_corpus else 0,
@@ -244,7 +244,7 @@ class PIModelAPI(ModelAPI):
         self.hidden_dim = argv.hidden_dim
 
         inputs = self._set_inputs()
-        self.model = PredicateIdentificationModel()
+        self.model = PIModel()
         self.model.compile(inputs=inputs,
                            vocab_word_corpus_size=self.vocab_word_corpus.size() if self.vocab_word_corpus else 0,
                            vocab_word_emb_size=self.vocab_word_emb.size() if self.vocab_word_emb else 0,

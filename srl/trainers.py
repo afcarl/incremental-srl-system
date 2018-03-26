@@ -134,7 +134,7 @@ class Trainer(object):
         raise NotImplementedError
 
 
-class LabelPredictionTrainer(Trainer):
+class LPTrainer(Trainer):
     def run(self):
         argv = self.argv
 
@@ -214,7 +214,7 @@ class LabelPredictionTrainer(Trainer):
             self._show_score_history(f1_history)
 
 
-class PredicateIdentificationTrainer(Trainer):
+class PITrainer(Trainer):
     def run(self):
         argv = self.argv
 
@@ -265,12 +265,6 @@ class PredicateIdentificationTrainer(Trainer):
         for epoch in xrange(self.argv.epoch):
             write('\nEpoch: %d' % (epoch + 1))
             write('  TRAIN')
-
-            if self.argv.halve_lr:
-                if epoch > 19 and (epoch % 20) == 0:
-                    lr = self.model_api.optimizer.lr.get_value(borrow=True)
-                    self.model_api.optimizer.lr.set_value(lr * 0.5)
-                    write('  ### HALVE LEARNING RATE: %f -> %f' % (lr, lr * 0.5))
             print '\t',
 
             train_batches = self.preprocessor.make_batches(train_samples)

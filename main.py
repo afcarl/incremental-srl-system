@@ -105,21 +105,27 @@ if __name__ == '__main__':
                             model_api=ISRLSystemAPI).run()
 
     elif argv.task == 'lp':
-        from srl.lp import Trainer, Predictor, Preprocessor, BaseModelAPI
+        from srl.trainers import LPTrainer
+        from srl.predictors import LPPredictor
+        from srl.preprocessors import LPPreprocessor
+        from srl.model_api import LPModelAPI
 
         if argv.mode == 'train':
             write('\nMODE: Training')
-            Trainer(argv=argv,
-                    preprocessor=Preprocessor,
-                    model_api=BaseModelAPI).run()
+            LPTrainer(argv=argv,
+                      preprocessor=LPPreprocessor,
+                      model_api=LPModelAPI).run()
         else:
             write('\nMODE: Predicting')
-            Predictor(argv=argv,
-                      preprocessor=Preprocessor,
-                      model_api=BaseModelAPI).run()
+            LPPredictor(argv=argv,
+                        preprocessor=LPPreprocessor,
+                        model_api=LPModelAPI).run()
 
     elif argv.task == 'pi':
-        from srl.pi import PITrainer, PIPredictor, PIPreprocessor, PIModelAPI
+        from srl.trainers import PITrainer
+        from srl.predictors import PIPredictor
+        from srl.preprocessors import PIPreprocessor
+        from srl.model_api import PIModelAPI
 
         if argv.mode == 'train':
             write('\nMODE: Training')
