@@ -53,11 +53,14 @@ class ISRLPreprocessor(Preprocessor):
     @staticmethod
     def make_sample_from_input_word(word, vocab_word_corpus, vocab_word_emb, time_step):
         x = []
-        word_id_corpus = vocab_word_corpus.get_id(word) if vocab_word_corpus else None
-        if word_id_corpus:
+
+        word_id_corpus = vocab_word_corpus.get_id_or_unk_id(word) if vocab_word_corpus else None
+        if word_id_corpus is not None:
             x.append([word_id_corpus])
-        word_id_emb = vocab_word_emb.get_id(word) if vocab_word_emb else None
-        if word_id_emb:
+
+        word_id_emb = vocab_word_emb.get_id_or_unk_id(word) if vocab_word_emb else None
+        if word_id_emb is not None:
             x.append([word_id_emb])
+
         x.append(time_step)
         return x

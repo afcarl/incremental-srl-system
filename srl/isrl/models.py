@@ -11,10 +11,10 @@ class ISRLSystem(object):
         self.shift_model = shift_model
         self.label_model = label_model
 
-        self.stack_a = theano.shared(value=np.zeros((5, 1, len(inputs)), dtype='int32'),
+        self.stack_a = theano.shared(value=np.zeros((50, 1, len(inputs)), dtype='int32'),
                                      name='stack_a',
                                      borrow=True)
-        self.stack_p = theano.shared(value=np.zeros((5, 1, 5), dtype='int32'),
+        self.stack_p = theano.shared(value=np.zeros((50, 1, 10), dtype='int32'),
                                      name='stack_a',
                                      borrow=True)
 
@@ -25,72 +25,6 @@ class ISRLSystem(object):
         :return: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
         """
         return T.argmax(label_proba, axis=2)
-
-    @staticmethod
-    def get_shift_loss(y_shift, shift_proba):
-        """
-        :param y_shift: 1D: batch_size, 2D: n_words; elem=0/1
-        :param shift_proba: 1D: batch_size, 2D: n_words; elem=proba
-        :return:
-        """
-        return T.mean(T.nnet.binary_crossentropy(output=shift_proba.flatten(),
-                                                 target=y_shift.flatten()))
-
-    def get_label_loss(self, y_label, label_proba):
-        """
-        :param y_label: 1D: time_steps, 2D: batch_size * n_words(prd), 3D: n_words(arg); elem=label id
-        :param label_proba: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg), 3D: n_labels; elem=proba
-        :return: scalar
-        """
-        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=proba
-        label_proba_true = self.get_label_proba_true(y_label, label_proba)
-        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=0/1
-        mask = self.make_mask_for_loss(label_proba)
-        # 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=0/1
-        label_log_likelihood = self.calc_log_likelihood(label_proba_true, mask)
-        # 1D: time_steps * batch_size * n_words(prd); elem=0/1
-        label_path_score = self.calc_label_path_score(labels=label_log_likelihood,
-                                                      time_steps=y_label.shape[0],
-                                                      batch_size=y_label.shape[1],
-                                                      n_words=y_label.shape[2])
-        return - T.sum(label_path_score) / T.sum(T.lt(label_path_score, 0.0))
-
-    @staticmethod
-    def get_label_proba_true(y_label, label_proba):
-        """
-        :param y_label: 1D: time_steps, 2D: batch_size * n_words(prd), 3D: n_words(arg); elem=label id
-        :param label_proba: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg), 3D: n_labels; elem=proba
-        :return: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=proba
-        """
-        y_proba = label_proba.reshape((label_proba.shape[0] * label_proba.shape[1], -1))
-        y_proba = y_proba[T.arange(y_proba.shape[0]), y_label.flatten()]
-        return y_proba.reshape((y_label.shape[0], -1))
-
-    @staticmethod
-    def make_mask_for_loss(label_proba):
-        """
-        :param label_proba: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg), 3D: n_labels; elem=proba
-        :return: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=0/1
-        """
-        return T.neq(T.sum(label_proba, axis=2), 0.0)
-
-    @staticmethod
-    def calc_log_likelihood(label_proba_true, mask, eps=1e-32):
-        """
-        :param label_proba_true: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=proba
-        :param mask: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=0/1
-        :param eps: float32
-        :return: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=log likelihood
-        """
-        return T.log(label_proba_true + eps) * mask
-
-    @staticmethod
-    def calc_label_path_score(labels, time_steps, batch_size, n_words):
-        """
-        :param labels: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=log likelihood
-        :return: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=0/1
-        """
-        return T.sum(labels.reshape((time_steps * batch_size, n_words)), axis=1)
 
     @staticmethod
     def calc_correct_shifts(shift_true, shift_pred):

@@ -16,7 +16,7 @@ while True:
 
     client.send(word)
     response = client.recv(4096)
-    re = pickle.loads(response)
+    response = pickle.loads(response)
 
     if len(response) == 0:
         print "Server Error"

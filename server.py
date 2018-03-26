@@ -19,39 +19,21 @@ server_socket.listen(1)
 def get_argv():
     parser = argparse.ArgumentParser(description='Deep SRL tagger.')
 
-    parser.add_argument('--mode', default='predict', help='train/predict')
-    parser.add_argument('--task', default='isrl', help='srl/isrl')
-    parser.add_argument('--action', default='shift_and_label', help='shift/label/shift_and_label')
-    parser.add_argument('--online', action='store_true', default=False, help='online mode')
-    parser.add_argument('--test', action='store_true', default=False, help='unit test')
     parser.add_argument('--unuse_word_corpus', action='store_true', default=False)
-
     parser.add_argument('--emb_dim', type=int, default=32, help='dimension of embeddings')
     parser.add_argument('--hidden_dim', type=int, default=32, help='dimension of hidden layer')
     parser.add_argument('--n_layers', type=int, default=1, help='number of layers')
-    parser.add_argument('--rnn_unit', default='lstm', help='gru/lstm')
+    parser.add_argument('--rnn_unit', default='gru', help='gru/lstm')
 
-    parser.add_argument('--batch_size', type=int, default=32, help='mini-batch size')
     parser.add_argument('--init_emb', default=None, help='Init embeddings to be loaded')
     parser.add_argument('--init_emb_fix', action='store_true', default=False, help='init embeddings to be fixed or not')
 
-    parser.add_argument('--opt_type', default='adam', help='sgd/adagrad/adadelta/adam')
-    parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
-    parser.add_argument('--grad_clip', action='store_true', default=False, help='gradient clipping')
-    parser.add_argument('--reg', type=float, default=0.0001, help='L2 Reg rate')
-    parser.add_argument('--drop_rate', type=float, default=0.0, help='Dropout Rate')
+    parser.add_argument('--load_word', default='param/word.txt', help='path to word ids')
+    parser.add_argument('--load_label', default='param/label.txt', help='path to label ids')
+    parser.add_argument('--load_pi_param', default='param/param.pi.pkl.gz', help='path to params')
+    parser.add_argument('--load_lp_param', default='param/param.lp.pkl.gz', help='path to params')
 
-    parser.add_argument('--load_shift_model_param', default=None, help='path to params')
-    parser.add_argument('--load_label_model_param', default=None, help='path to params')
-    parser.add_argument('--load_word', default=None, help='path to word ids')
-    parser.add_argument('--load_label', default=None, help='path to label ids')
-
-    argv = parser.parse_args()
-    print
-    print argv
-    print
-
-    return argv
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
@@ -83,38 +65,30 @@ if __name__ == '__main__':
                 break
             inputs = data.rstrip().split()
 
-            if len(inputs) < 2:
-                client_socket.send("Please input a command & word")
-                continue
+            text = ""
+            for word in inputs:
+                outputs = predictor.predict_server_mode(word, time_step)
+                stack_a, stack_p, shift_proba, label_proba, label_pred = outputs
 
-            command = inputs[0]
-            words = inputs[1:]
+                sent.append(word)
+                for w, p in zip(sent, stack_p):
+                    text += '%s/%s ' % (w, p)
+                text += '\n'
 
-            if command == "srl":
-                text = ""
-                for word in words:
-                    stack_a, stack_p, shift_proba, label_proba, label_pred = predictor.predict_server_mode(word,
-                                                                                                           time_step)
-                    sent.append(word)
-                    for w, p in zip(sent, stack_p):
-                        text += '%s/%s ' % (w, p)
+                for i, (p, labels) in enumerate(zip(stack_p, label_pred)):
+                    if p == 0:
+                        continue
+
+                    text += 'PRD:%s\t' % sent[i]
+                    for w_index in xrange(len(sent)):
+                        form = sent[w_index]
+                        label = vocab_label.get_word(labels[w_index])
+                        text += '%s/%s ' % (form, label)
                     text += '\n'
 
-                    for i, (p, labels) in enumerate(zip(stack_p, label_pred)):
-                        if p == 0:
-                            continue
-
-                        text += 'PRD:%s\t' % sent[i]
-                        for w_index in xrange(len(sent)):
-                            form = sent[w_index]
-                            label = vocab_label.get_word(labels[w_index])
-                            text += '%s/%s ' % (form, label)
-                        text += '\n'
-
-                    time_step += 1
-                output = pickle.dumps(stack_p)
-                #                client_socket.send(text)
-                client_socket.send(output)
+                time_step += 1
+            output = pickle.dumps(text)
+            client_socket.send(output)
 
         client_socket.close()
         break

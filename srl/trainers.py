@@ -62,10 +62,9 @@ class Trainer(object):
 
         if argv.save:
             if vocab_word_corpus:
+                fn = 'param/word.'
                 if argv.output_fn:
-                    fn = 'param/word.' + argv.output_fn
-                else:
-                    fn = 'param/word.' + argv.task
+                    fn = argv.output_fn
 
                 values, keys = map(lambda x: x, zip(*enumerate(vocab_word_corpus.i2w)))
                 self.saver.save_key_value_format(fn=fn, keys=keys, values=values)
@@ -86,13 +85,12 @@ class Trainer(object):
             vocab_label_dev = None
 
         if argv.save:
+            fn = 'param/label.'
             if argv.output_fn:
-                fn_d = 'param/label.' + argv.output_fn
-            else:
-                fn_d = 'param/label.' + argv.task
+                fn = argv.output_fn
 
-            values_d, keys_d = map(lambda x: x, zip(*enumerate(vocab_label_train.i2w)))
-            self.saver.save_key_value_format(fn=fn_d, keys=keys_d, values=values_d)
+            values, keys = map(lambda x: x, zip(*enumerate(vocab_label_train.i2w)))
+            self.saver.save_key_value_format(fn=fn, keys=keys, values=values)
 
         write('\t# Labels %d' % vocab_label_train.size())
         write("\t%s" % str(vocab_label_train.i2w))

@@ -51,10 +51,9 @@ class ISRLSystemAPI(ModelAPI):
             hidden_dim=self.hidden_dim,
             n_layers=argv.n_layers,
             rnn_unit=argv.rnn_unit,
-            batch_size=argv.batch_size,
             init_emb=kwargs['init_emb'],
             init_emb_fix=argv.init_emb_fix,
-            drop_rate=argv.drop_rate
+            drop_rate=0.0
         )
 
         label_model = LabelModel()
@@ -67,10 +66,9 @@ class ISRLSystemAPI(ModelAPI):
             output_dim=self.output_dim,
             n_layers=argv.n_layers,
             rnn_unit=argv.rnn_unit,
-            batch_size=argv.batch_size,
             init_emb=kwargs['init_emb'],
             init_emb_fix=argv.init_emb_fix,
-            drop_rate=argv.drop_rate
+            drop_rate=0.0
         )
 
         self.model = ISRLSystem(inputs, shift_model, label_model)
@@ -125,7 +123,7 @@ class ISRLSystemAPI(ModelAPI):
         )
 
     def set_predict_given_gold_prds_func(self):
-        write('\nBuilding a predict label func...')
+        write('\nBuilding a predict func...')
         print self.model.inputs
 
         y_shift = T.imatrix('y_shift')
@@ -141,7 +139,7 @@ class ISRLSystemAPI(ModelAPI):
         )
 
     def set_predict_online_func(self):
-        write('\nBuilding a predict online shift and label func...')
+        write('\nBuilding a predict func...')
 
         x = []
         if self.vocab_word_corpus:
