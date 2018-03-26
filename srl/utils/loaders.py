@@ -4,7 +4,7 @@ import cPickle
 import numpy as np
 import theano
 
-from srl.utils import UNK
+from vocab import UNK
 
 
 class Loader(object):

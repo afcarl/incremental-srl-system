@@ -3,7 +3,7 @@ import gzip
 
 import numpy as np
 
-from srl.utils import UNDER_BAR, VERB
+from vocab import UNDER_BAR, VERB
 
 
 class Saver(object):

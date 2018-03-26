@@ -69,7 +69,6 @@ if __name__ == '__main__':
     ########################
     parser.add_argument('--opt_type', default='adam', help='sgd/adagrad/adadelta/adam')
     parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
-    parser.add_argument('--halve_lr', action='store_true', default=False, help='halve learning rate')
     parser.add_argument('--grad_clip', action='store_true', default=False, help='gradient clipping')
     parser.add_argument('--reg', type=float, default=0.0001, help='L2 Reg rate')
     parser.add_argument('--drop_rate', type=float, default=0.0, help='Dropout Rate')
