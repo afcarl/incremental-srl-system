@@ -186,6 +186,7 @@ class LPTrainer(Trainer):
         for epoch in xrange(self.argv.epoch):
             write('\nEpoch: %d' % (epoch + 1))
             write('  TRAIN')
+            print '\t',
 
             train_batches = self.preprocessor.make_batches(train_samples)
             self.model_api.train(train_batches)
