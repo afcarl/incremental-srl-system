@@ -1,0 +1,120 @@
+import sys
+import argparse
+
+import numpy as np
+import theano
+
+sys.setrecursionlimit(100000000)
+theano.config.floatX = 'float32'
+np.random.seed(0)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Deep SRL tagger.')
+
+    parser.add_argument('--mode', default='train', help='train/predict')
+    parser.add_argument('--task', default='srl', help='srl/isrl/pi/pd')
+    parser.add_argument('--action', default='shift_and_label', help='shift/label/shift_and_label')
+    parser.add_argument('--online', action='store_true', default=False, help='online mode')
+    parser.add_argument('--test', action='store_true', default=False, help='unit test')
+
+    ##################
+    # Input Datasets #
+    ##################
+    parser.add_argument('--train_data', help='path to training data')
+    parser.add_argument('--dev_data', help='path to dev data')
+    parser.add_argument('--test_data', help='path to test data')
+    parser.add_argument('--gold_data', help='path to gold data')
+    parser.add_argument('--pred_data', help='path to pred data')
+
+    ###################
+    # Dataset Options #
+    ###################
+    parser.add_argument('--data_type', default='ptb', help='ptb/conll12')
+    parser.add_argument('--data_size', type=int, default=1000000, help='data size to be used')
+
+    ######################
+    # Preprocess Options #
+    ######################
+    parser.add_argument('--cut_word', type=int, default=0)
+    parser.add_argument('--cut_label', type=int, default=0)
+    parser.add_argument('--unuse_word_corpus', action='store_true', default=False)
+
+    ##################
+    # Output Options #
+    ##################
+    parser.add_argument('--save', action='store_true', default=False, help='parameters to be saved or not')
+    parser.add_argument('--output_fn', type=str, default=None, help='output file name')
+    parser.add_argument('--output_type', type=str, default='txt', help='txt/xlsx')
+
+    ###################
+    # Samples/Batches #
+    ###################
+    parser.add_argument('--batch_size', type=int, default=32, help='mini-batch size')
+
+    ###################
+    # NN Architecture #
+    ###################
+    parser.add_argument('--emb_dim', type=int, default=32, help='dimension of embeddings')
+    parser.add_argument('--hidden_dim', type=int, default=32, help='dimension of hidden layer')
+    parser.add_argument('--n_layers', type=int, default=1, help='number of layers')
+    parser.add_argument('--rnn_unit', default='lstm', help='gru/lstm')
+
+    ####################
+    # Training Options #
+    ####################
+    parser.add_argument('--epoch', type=int, default=100, help='number of epochs to train')
+    parser.add_argument('--init_emb', default=None, help='Initial embeddings to be loaded')
+    parser.add_argument('--init_emb_fix', action='store_true', default=False, help='init embeddings to be fixed or not')
+
+    ########################
+    # Optimization Options #
+    ########################
+    parser.add_argument('--opt_type', default='adam', help='sgd/adagrad/adadelta/adam')
+    parser.add_argument('--lr', type=float, default=0.001, help='learning rate')
+    parser.add_argument('--halve_lr', action='store_true', default=False, help='halve learning rate')
+    parser.add_argument('--grad_clip', action='store_true', default=False, help='gradient clipping')
+    parser.add_argument('--reg', type=float, default=0.0001, help='L2 Reg rate')
+    parser.add_argument('--drop_rate', type=float, default=0.0, help='Dropout Rate')
+
+    ###################
+    # Loading Options #
+    ###################
+    parser.add_argument('--load_param', default=None, help='path to params')
+    parser.add_argument('--load_pi_param', default=None, help='path to params')
+    parser.add_argument('--load_shift_model_param', default=None, help='path to params')
+    parser.add_argument('--load_label_model_param', default=None, help='path to params')
+    parser.add_argument('--load_word', default=None, help='path to word ids')
+    parser.add_argument('--load_pi_word', default=None, help='path to params')
+    parser.add_argument('--load_label', default=None, help='path to label ids')
+
+    argv = parser.parse_args()
+    print
+    print argv
+    print
+
+    if argv.task == 'srl':
+        from srl.base.app import App
+
+        App(argv).run()
+    elif argv.task == 'pi':
+        from srl.pi.app import App
+
+        App(argv).run()
+    elif argv.task == 'pd':
+        from srl.pd.app import App
+
+        App(argv).run()
+    elif argv.task == 'isrl':
+        from srl.isrl.app import App
+
+        App(argv).run()
+    elif argv.task == 'convert':
+        from srl.utils.converter import FromConllToCissConverter
+
+        converter = FromConllToCissConverter(argv)
+        converter.convert()
+    elif argv.task == 'eval':
+        from srl.utils.evaluators import ISRLEvaluator
+
+        evaluator = ISRLEvaluator(argv)
+        evaluator.eval()
