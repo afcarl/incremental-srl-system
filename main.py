@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Deep SRL tagger.')
 
     parser.add_argument('--mode', default='train', help='train/predict')
-    parser.add_argument('--task', default='srl', help='srl/isrl/pi/pd')
+    parser.add_argument('--task', default='srl', help='srl/isrl/pi')
     parser.add_argument('--action', default='shift_and_label', help='shift/label/shift_and_label')
     parser.add_argument('--online', action='store_true', default=False, help='online mode')
     parser.add_argument('--test', action='store_true', default=False, help='unit test')
@@ -29,7 +29,6 @@ if __name__ == '__main__':
     ###################
     # Dataset Options #
     ###################
-    parser.add_argument('--data_type', default='ptb', help='ptb/conll12')
     parser.add_argument('--data_size', type=int, default=1000000, help='data size to be used')
 
     ######################
@@ -57,7 +56,7 @@ if __name__ == '__main__':
     parser.add_argument('--emb_dim', type=int, default=32, help='dimension of embeddings')
     parser.add_argument('--hidden_dim', type=int, default=32, help='dimension of hidden layer')
     parser.add_argument('--n_layers', type=int, default=1, help='number of layers')
-    parser.add_argument('--rnn_unit', default='lstm', help='gru/lstm')
+    parser.add_argument('--rnn_unit', default='gru', help='gru/lstm')
 
     ####################
     # Training Options #
@@ -93,26 +92,18 @@ if __name__ == '__main__':
     print
 
     if argv.task == 'srl':
-        from srl.base.app import App
-
-        App(argv).run()
-    elif argv.task == 'pi':
-        from srl.pi.app import App
-
-        App(argv).run()
-    elif argv.task == 'pd':
-        from srl.pd.app import App
+        from srl.lp.app import App
 
         App(argv).run()
     elif argv.task == 'isrl':
         from srl.isrl.app import App
 
         App(argv).run()
-    elif argv.task == 'convert':
-        from srl.utils.converter import FromConllToCissConverter
 
-        converter = FromConllToCissConverter(argv)
-        converter.convert()
+    elif argv.task == 'pi':
+        from srl.pi.app import App
+
+        App(argv).run()
     elif argv.task == 'eval':
         from srl.utils.evaluators import ISRLEvaluator
 
