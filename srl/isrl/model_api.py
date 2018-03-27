@@ -74,15 +74,13 @@ class ISRLSystemAPI(ModelAPI):
     def _show_model_config(self):
         model = self.model
         write('\nModel configuration')
-        write('\t- Vocab Size: {}'.format(
-            self.vocab_word_corpus.size() if self.vocab_word_corpus else self.vocab_word_emb.size())
-        )
 
         if self.model.shift_model is not None:
             l_names = [l.name for l in self.model.shift_model.layers]
             n_params = sum(len(x.get_value(borrow=True).ravel()) for x in model.shift_model.params)
             write('\tSHIFT: {}'.format(" -> ".join(l_names)))
             write('\t  - Params: {}'.format(n_params))
+
         if self.model.label_model is not None:
             l_names = [l.name for l in self.model.label_model.layers]
             n_params = sum(len(x.get_value(borrow=True).ravel()) for x in model.label_model.params)

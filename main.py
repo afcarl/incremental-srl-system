@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
         ISRLPredictor(argv=argv,
                       preprocessor=ISRLPreprocessor,
-                      model_api=ISRLSystemAPI).run()
+                      model_api=ISRLSystemAPI).run_cmd_mode()
 
     elif argv.task == 'lp':
         from srl.trainers import LPTrainer
