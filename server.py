@@ -1,6 +1,6 @@
 import socket
 import argparse
-import pickle
+import json
 import theano
 
 theano.config.floatX = 'float32'
@@ -59,29 +59,30 @@ if __name__ == '__main__':
                 break
             inputs = data.rstrip().split()
 
-            text = ""
+            json_dict = {'sent': [],
+                         'prds': [],
+                         'labels': []}
+
             for word in inputs:
                 outputs = predictor.predict_server_mode(word, time_step)
                 stack_a, stack_p, shift_proba, label_proba, label_pred = outputs
 
                 sent.append(word)
-                for w, p in zip(sent, stack_p):
-                    text += '%s/%s ' % (w, p)
-                text += '\n'
+                prds = []
+                labels = []
 
-                for i, (p, labels) in enumerate(zip(stack_p, label_pred)):
+                for i, (p, labels_i) in enumerate(zip(stack_p, label_pred)):
                     if p == 0:
                         continue
+                    prds.append(i)
+                    labels.append([vocab_label.get_word(labels_i[w_index]) for w_index in xrange(len(sent))])
 
-                    text += 'PRD:%s\t' % sent[i]
-                    for w_index in xrange(len(sent)):
-                        form = sent[w_index]
-                        label = vocab_label.get_word(labels[w_index])
-                        text += '%s/%s ' % (form, label)
-                    text += '\n'
-
+                json_dict['sent'] = sent
+                json_dict['prds'] = prds
+                json_dict['labels'] = labels
                 time_step += 1
-            output = pickle.dumps(text)
+
+            output = json.dumps(json_dict)
             client_socket.send(output)
 
         client_socket.close()

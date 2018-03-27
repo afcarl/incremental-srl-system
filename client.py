@@ -1,5 +1,5 @@
 import socket
-import pickle
+import json
 
 # Server setting
 host = "localhost"
@@ -16,9 +16,11 @@ while True:
 
     client.send(word)
     response = client.recv(4096)
-    response = pickle.loads(response)
-
     if len(response) == 0:
         print "Server Error"
         break
-    print response
+
+    json_dict = json.loads(response)
+    print json_dict['sent']
+    print json_dict['prds']
+    print json_dict['labels']
