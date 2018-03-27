@@ -19,7 +19,7 @@ server_socket.listen(1)
 def get_argv():
     parser = argparse.ArgumentParser(description='Deep SRL tagger.')
 
-    parser.add_argument('--init_emb', default=None, help='Init embeddings to be loaded')
+    parser.add_argument('--init_emb', default='data/senna.130k.50d.txt', help='Init embeddings to be loaded')
     parser.add_argument('--load_word', default='param/word.txt', help='path to word ids')
     parser.add_argument('--load_label', default='param/label.txt', help='path to label ids')
     parser.add_argument('--load_pi_args', default='param/args.pi.pkl.gz', help='path to arg params')

@@ -114,7 +114,7 @@ class ISRLPredictor(Predictor):
     def run_server_mode(self):
         argv = self.argv
         pi_args = self.loader.load_data(argv.load_pi_args)
-        lp_args = self.loader.load_data(argv.load_pi_args)
+        lp_args = self.loader.load_data(argv.load_lp_args)
 
         #################
         # Load init emb #

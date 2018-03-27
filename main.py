@@ -61,7 +61,7 @@ if __name__ == '__main__':
     # Training Options #
     ####################
     parser.add_argument('--epoch', type=int, default=100, help='number of epochs to train')
-    parser.add_argument('--init_emb', default=None, help='Initial embeddings to be loaded')
+    parser.add_argument('--init_emb', default='data/senna.130k.50d.txt', help='Initial embeddings to be loaded')
     parser.add_argument('--init_emb_fix', action='store_true', default=False, help='init embeddings to be fixed or not')
 
     ########################
