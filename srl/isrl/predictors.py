@@ -5,6 +5,8 @@ from ..predictors import Predictor
 class ISRLPredictor(Predictor):
     def run(self):
         argv = self.argv
+        pi_args = self.loader.load_data(argv.load_pi_args)
+        lp_args = self.loader.load_data(argv.load_lp_args)
 
         ################
         # Load dataset #
@@ -23,7 +25,6 @@ class ISRLPredictor(Predictor):
             write('\n\tLoading Embeddings...')
             word_list_emb, init_emb = self.emb_loader.load(argv.init_emb)
             vocab_word_emb = self.make_vocab_word(word_list=word_list_emb)
-            write('\n\tEmb Vocab Size: %d' % len(word_list_emb))
         else:
             vocab_word_emb = init_emb = None
 
@@ -46,7 +47,6 @@ class ISRLPredictor(Predictor):
         # Make samples #
         ################
         write('\n\tMaking Samples...')
-        write('\n\tMaking Samples...')
         samples = self.preprocessor.set_sent_params(corpus=corpus,
                                                     vocab_word_corpus=vocab_word_corpus,
                                                     vocab_word_emb=vocab_word_emb,
@@ -56,7 +56,9 @@ class ISRLPredictor(Predictor):
         #############
         # Model API #
         #############
-        self.model_api.set_model(init_emb=init_emb,
+        self.model_api.set_model(pi_args=pi_args,
+                                 lp_args=lp_args,
+                                 init_emb=init_emb,
                                  vocab_word_corpus=vocab_word_corpus,
                                  vocab_word_emb=vocab_word_emb,
                                  vocab_label=vocab_label)
@@ -109,8 +111,10 @@ class ISRLPredictor(Predictor):
 
         self.predict_cmd_mode(vocab_word_corpus, vocab_word_emb, vocab_label)
 
-    def run_server_mode(self, pi_args, lp_args):
+    def run_server_mode(self):
         argv = self.argv
+        pi_args = self.loader.load_data(argv.load_pi_args)
+        lp_args = self.loader.load_data(argv.load_pi_args)
 
         #################
         # Load init emb #
@@ -157,7 +161,6 @@ class ISRLPredictor(Predictor):
         batches = self.preprocessor.make_test_batches(samples)
 
         write('\nPREDICTION START')
-        write('  PREDICTING')
         print '\t',
         samples = self.model_api.predict_given_gold_prds(batches)
         self.saver.save_isrl_props(samples, self.model_api.vocab_label)
@@ -168,7 +171,6 @@ class ISRLPredictor(Predictor):
         self.model_api.set_predict_func()
 
         write('\nPREDICTION START')
-        write('  PREDICTING')
         print '\t',
         samples = self.model_api.predict(samples)
         self.saver.save_isrl_props(samples, self.model_api.vocab_label)

@@ -1,7 +1,5 @@
 import socket
 import argparse
-import gzip
-import cPickle
 import pickle
 import theano
 
@@ -29,15 +27,7 @@ def get_argv():
     parser.add_argument('--load_pi_param', default='param/param.pi.pkl.gz', help='path to params')
     parser.add_argument('--load_lp_param', default='param/param.lp.pkl.gz', help='path to params')
 
-    argv = parser.parse_args()
-
-    with gzip.open(argv.load_pi_args, 'rb') as gf:
-        pi_args = cPickle.load(gf)
-
-    with gzip.open(argv.load_lp_args, 'rb') as gf:
-        lp_args = cPickle.load(gf)
-
-    return argv, pi_args, lp_args
+    return parser.parse_args()
 
 
 if __name__ == '__main__':
@@ -47,11 +37,10 @@ if __name__ == '__main__':
 
     # Main loop
     while True:
-        argv, pi_args, lp_args = get_argv()
-        predictor = ISRLPredictor(argv=argv,
+        predictor = ISRLPredictor(argv=get_argv(),
                                   preprocessor=ISRLPreprocessor,
                                   model_api=ISRLSystemAPI)
-        predictor.run_server_mode(pi_args, lp_args)
+        predictor.run_server_mode()
         vocab_label = predictor.model_api.vocab_label
 
         # Wait socket connection

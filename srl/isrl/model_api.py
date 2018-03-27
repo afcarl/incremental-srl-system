@@ -37,9 +37,6 @@ class ISRLSystemAPI(ModelAPI):
         self.vocab_word_emb = kwargs['vocab_word_emb']
         self.vocab_label = kwargs['vocab_label']
 
-        inputs = self._set_inputs()
-        print inputs
-
         shift_model = ShiftModel()
         shift_model.compile(
             inputs=None,
@@ -69,7 +66,9 @@ class ISRLSystemAPI(ModelAPI):
             drop_rate=0.0
         )
 
-        self.model = ISRLSystem(inputs, shift_model, label_model)
+        self.model = ISRLSystem(inputs=self._set_inputs(),
+                                shift_model=shift_model,
+                                label_model=label_model)
         self._show_model_config()
 
     def _show_model_config(self):
