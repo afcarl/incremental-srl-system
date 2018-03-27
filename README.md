@@ -13,7 +13,7 @@ git clone https://github.com/hiroki13/incremental-srl-system.git
 
 ### Example Comand
 ```
-python server.py --init_emb data/senna.130K.50d.txt`
+python server.py
 ```
 
 ```
