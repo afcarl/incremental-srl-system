@@ -1,5 +1,11 @@
 # incremental-srl-system
 
+## Install
+```
+git clone https://github.com/hiroki13/incremental-srl-system.git
+cd incremental-srl-system
+```
+
 ## Getting Started
 
 ### Example Comand
