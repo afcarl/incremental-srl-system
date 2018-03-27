@@ -13,10 +13,12 @@ git clone https://github.com/hiroki13/incremental-srl-system.git
 
 ### Example Comand
 - Command Prompt Mode
-
+Please input the following command.
 ```
 python main.py
 ```
+
+Then the following outputs will be displayed.
 ```
 SYSTEM START
 
@@ -33,7 +35,12 @@ Model configuration
 Building a predict func...
 
 Input a tokenized sentence.
->>>  She
+>>>  
+```
+
+When you type a token, the corresponding result will be displayed.
+```
+>>> She
 She
 
 >>>  likes
