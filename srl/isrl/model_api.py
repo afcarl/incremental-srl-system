@@ -30,44 +30,42 @@ class ISRLSystemAPI(ModelAPI):
             p1.set_value(p2)
 
     def set_model(self, **kwargs):
-        argv = self.argv
+        pi_args = kwargs['pi_args']
+        lp_args = kwargs['lp_args']
 
         self.vocab_word_corpus = kwargs['vocab_word_corpus']
         self.vocab_word_emb = kwargs['vocab_word_emb']
         self.vocab_label = kwargs['vocab_label']
 
-        self.input_dim = kwargs['init_emb'].shape[1] if kwargs['init_emb'] is not None else argv.emb_dim
-        self.hidden_dim = argv.hidden_dim
-        self.output_dim = kwargs['vocab_label'].size()
-
         inputs = self._set_inputs()
+        print inputs
 
         shift_model = ShiftModel()
         shift_model.compile(
-            inputs=inputs,
+            inputs=None,
             vocab_word_corpus_size=self.vocab_word_corpus.size() if self.vocab_word_corpus else 0,
             vocab_word_emb_size=self.vocab_word_emb.size() if self.vocab_word_emb else 0,
-            input_dim=self.input_dim,
-            hidden_dim=self.hidden_dim,
-            n_layers=argv.n_layers,
-            rnn_unit=argv.rnn_unit,
+            input_dim=kwargs['init_emb'].shape[1] if kwargs['init_emb'] is not None else pi_args.emb_dim,
+            hidden_dim=pi_args.hidden_dim,
+            n_layers=pi_args.n_layers,
+            rnn_unit=pi_args.rnn_unit,
             init_emb=kwargs['init_emb'],
-            init_emb_fix=argv.init_emb_fix,
+            init_emb_fix=pi_args.init_emb_fix,
             drop_rate=0.0
         )
 
         label_model = LabelModel()
         label_model.compile(
-            inputs=inputs,
+            inputs=None,
             vocab_word_corpus_size=self.vocab_word_corpus.size() if self.vocab_word_corpus else 0,
             vocab_word_emb_size=self.vocab_word_emb.size() if self.vocab_word_emb else 0,
-            input_dim=[self.input_dim, 5],
-            hidden_dim=self.hidden_dim,
-            output_dim=self.output_dim,
-            n_layers=argv.n_layers,
-            rnn_unit=argv.rnn_unit,
+            input_dim=[kwargs['init_emb'].shape[1] if kwargs['init_emb'] is not None else lp_args.emb_dim, 5],
+            hidden_dim=lp_args.hidden_dim,
+            output_dim=kwargs['vocab_label'].size(),
+            n_layers=lp_args.n_layers,
+            rnn_unit=lp_args.rnn_unit,
             init_emb=kwargs['init_emb'],
-            init_emb_fix=argv.init_emb_fix,
+            init_emb_fix=lp_args.init_emb_fix,
             drop_rate=0.0
         )
 
@@ -80,9 +78,6 @@ class ISRLSystemAPI(ModelAPI):
         write('\t- Vocab Size: {}'.format(
             self.vocab_word_corpus.size() if self.vocab_word_corpus else self.vocab_word_emb.size())
         )
-        write('\t- Input  Dim: {}'.format(self.input_dim))
-        write('\t- Hidden Dim: {}'.format(self.hidden_dim))
-        write('\t- Output Dim: {}\n'.format(self.output_dim))
 
         if self.model.shift_model is not None:
             l_names = [l.name for l in self.model.shift_model.layers]
@@ -141,11 +136,14 @@ class ISRLSystemAPI(ModelAPI):
     def set_predict_online_func(self):
         write('\nBuilding a predict func...')
 
-        x = []
-        if self.vocab_word_corpus:
-            x.append(T.ivector('x_word_corpus'))
-        if self.vocab_word_emb:
-            x.append(T.ivector('x_word_emb'))
+        if self.vocab_word_corpus and self.vocab_word_emb:
+            x = T.imatrix('x')
+        elif self.vocab_word_corpus:
+            x = T.ivector('x_word_corpus')
+        elif self.vocab_word_emb:
+            x = T.ivector('x_word_emb')
+        else:
+            x = None
 
         time_step = T.iscalar('time_step')
 
@@ -163,7 +161,7 @@ class ISRLSystemAPI(ModelAPI):
                    (self.model.stack_p, stack_p)]
 
         self.predict_shift_and_label_func = theano.function(
-            inputs=x + [time_step],
+            inputs=[x, time_step],
             outputs=[stack_a[:, 0].flatten(),
                      T.sum(stack_p[:, 0], axis=0),
                      shift_proba,

@@ -107,9 +107,9 @@ class ISRLPredictor(Predictor):
         self.model_api.load_label_model_params()
         self.model_api.set_predict_online_func()
 
-        self._predict_cmd_mode(vocab_word_corpus, vocab_word_emb, vocab_label)
+        self.predict_cmd_mode(vocab_word_corpus, vocab_word_emb, vocab_label)
 
-    def run_server_mode(self):
+    def run_server_mode(self, pi_args, lp_args):
         argv = self.argv
 
         #################
@@ -119,7 +119,6 @@ class ISRLPredictor(Predictor):
             write('\n\tLoading Embeddings...')
             word_list_emb, init_emb = self.emb_loader.load(argv.init_emb)
             vocab_word_emb = self.make_vocab_word(word_list=word_list_emb)
-            write('\n\tEmb Vocab Size: %d' % len(word_list_emb))
         else:
             vocab_word_emb = init_emb = None
 
@@ -141,7 +140,9 @@ class ISRLPredictor(Predictor):
         #############
         # Model API #
         #############
-        self.model_api.set_model(init_emb=init_emb,
+        self.model_api.set_model(pi_args=pi_args,
+                                 lp_args=lp_args,
+                                 init_emb=init_emb,
                                  vocab_word_corpus=vocab_word_corpus,
                                  vocab_word_emb=vocab_word_emb,
                                  vocab_label=vocab_label)
@@ -172,7 +173,7 @@ class ISRLPredictor(Predictor):
         samples = self.model_api.predict(samples)
         self.saver.save_isrl_props(samples, self.model_api.vocab_label)
 
-    def _predict_cmd_mode(self, vocab_word_corpus, vocab_word_emb, vocab_label):
+    def predict_cmd_mode(self, vocab_word_corpus, vocab_word_emb, vocab_label):
         print '\nInput a tokenized sentence.'
         time_step = 0
 
@@ -212,4 +213,3 @@ class ISRLPredictor(Predictor):
                                                                self.model_api.vocab_word_emb,
                                                                time_step)
         return self.model_api.predict_online(sample)
-

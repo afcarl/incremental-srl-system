@@ -19,6 +19,12 @@ class Trainer(object):
             write('\t- EPOCH-{:d}  \tBEST DEV {:>7.2%}'.format(k, v))
         write('\n')
 
+    def _save_args(self):
+        fn = 'param/args.' + self.argv.task
+        if self.argv.output_fn:
+            fn = self.argv.output_fn
+        self.saver.save_pkl_gz_format(fn=fn, data=self.argv)
+
     def _load_corpus(self, argv):
         write('\n\tLoading Dataset...')
         train_corpus = self.loader.load(path=argv.train_data,
@@ -142,6 +148,7 @@ class LPTrainer(Trainer):
         if argv.save:
             if not os.path.exists('param'):
                 os.mkdir('param')
+            self._save_args()
 
         train_corpus, dev_corpus = self._load_corpus(argv=argv)
         train_corpus, dev_corpus = self._make_sents(train_corpus=train_corpus,
@@ -217,6 +224,7 @@ class PITrainer(Trainer):
         if argv.save:
             if not os.path.exists('param'):
                 os.mkdir('param')
+            self._save_args()
 
         train_corpus, dev_corpus = self._load_corpus(argv=argv)
         train_corpus, dev_corpus = self._make_sents(train_corpus=train_corpus,

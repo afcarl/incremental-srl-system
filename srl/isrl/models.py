@@ -14,8 +14,8 @@ class ISRLSystem(object):
         self.stack_a = theano.shared(value=np.zeros((50, 1, len(inputs)), dtype='int32'),
                                      name='stack_a',
                                      borrow=True)
-        self.stack_p = theano.shared(value=np.zeros((50, 1, 10), dtype='int32'),
-                                     name='stack_a',
+        self.stack_p = theano.shared(value=np.zeros((50, 1, 50), dtype='int32'),
+                                     name='stack_p',
                                      borrow=True)
 
     @staticmethod
@@ -25,39 +25,6 @@ class ISRLSystem(object):
         :return: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
         """
         return T.argmax(label_proba, axis=2)
-
-    @staticmethod
-    def calc_correct_shifts(shift_true, shift_pred):
-        shift_true = shift_true.flatten()
-        shift_pred = shift_pred.flatten()
-        eqs = T.eq(shift_true, shift_pred)
-        crr = T.sum(eqs * T.gt(shift_pred, 0))
-        true_total = T.sum(shift_true)
-        pred_total = T.sum(shift_pred)
-        return crr, true_total, pred_total
-
-    @staticmethod
-    def calc_correct_labels(label_true, label_pred, prd_marks):
-        """
-        :param label_true: 1D: time_steps, 2D: batch_size * n_words(prd), 3D: n_words(arg); elem=label id
-        :param label_pred: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
-        :param prd_marks: 1D: batch_size, 2D: n_words; elem=0/1
-        :return: 1D: time_steps; elem=scalar
-        """
-        time_steps = label_pred.shape[0]
-        batch_size = prd_marks.shape[0]
-        n_words_a = prd_marks.shape[1]
-        n_words_p = label_true.shape[1] / batch_size
-
-        label_true = label_true.reshape((time_steps, batch_size, n_words_p, n_words_a))
-        label_pred = label_pred.reshape((time_steps, batch_size, n_words_p, n_words_a))
-        prd_marks = prd_marks.dimshuffle('x', 0, 1, 'x')
-
-        eqs = T.eq(label_pred, label_true)
-        crr = T.sum(eqs * prd_marks * T.gt(label_pred, 0), axis=(1, 2, 3))
-        true_total = T.sum(T.gt(label_true, 0), axis=(1, 2, 3))
-        pred_total = T.sum(T.gt(label_pred * prd_marks, 0), axis=(1, 2, 3))
-        return crr, true_total, pred_total
 
     def _set_initial_stacks(self):
         x = self.inputs[0]
