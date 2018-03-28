@@ -35,8 +35,7 @@ class LPPredictor(Predictor):
         ################
         write('\n\tLoading Dataset...')
         corpus = self.loader.load(path=argv.test_data,
-                                  data_size=argv.data_size,
-                                  is_test=True)
+                                  data_size=argv.data_size)
         sents = self.preprocessor.make_sents(corpus=corpus)
 
         #################
@@ -104,8 +103,7 @@ class PIPredictor(Predictor):
         ################
         write('\n\tLoading Dataset...')
         corpus = self.loader.load(path=argv.test_data,
-                                  data_size=argv.data_size,
-                                  is_test=True)
+                                  data_size=argv.data_size)
         sents = self.preprocessor.make_sents(corpus=corpus)
 
         #################

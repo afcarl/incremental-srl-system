@@ -368,3 +368,53 @@ class ISRLEvaluator(Evaluator):
                     srl_scores[2] += 1
 
         return srl_scores
+
+    def ciss(self, corpus):
+        # 1D: n_calibrates, 2D: 3, 3D: n_words
+        isrl_scores = np.zeros(shape=(4, 3, 40), dtype='float32')
+        srl_score = np.zeros(shape=3, dtype='float32')
+
+        for sent in corpus:
+            n_words = sent.n_words
+            if n_words <= 10:
+                calib_id = 0
+            elif n_words <= 20:
+                calib_id = 1
+            elif n_words <= 30:
+                calib_id = 2
+            elif n_words <= 40:
+                calib_id = 3
+            else:
+                continue
+
+            for i, p_index in enumerate(sent.prd_indices):
+                labels_gold = sent.prd_props[i]
+                for t in xrange(len(labels_gold)):
+                    for label in labels_gold[:t+1]:
+                        if label == UNDER_BAR:
+                            continue
+                        isrl_scores[calib_id, 1, t] += 1
+
+                if p_index in sent.prd_indices_sys:
+                    j = sent.prd_indices_sys.index(p_index)
+                    labels_each_time = sent.prd_props_sys[j]
+                    for t in xrange(len(labels_each_time)):
+                        labels_gold_t = labels_gold[:t + 1]
+                        labels_sys_t = labels_each_time[t]
+                        for label_g, label_s in zip(labels_gold_t, labels_sys_t):
+                            if label_g != UNDER_BAR and label_g == label_s:
+                                isrl_scores[calib_id, 0, t] += 1
+
+            for i, p_index in enumerate(sent.prd_indices_sys):
+                for props in sent.prd_props_sys[i]:
+                    for t, labels in enumerate(props):
+                        for label in labels:
+                            if label == UNDER_BAR:
+                                continue
+                            isrl_scores[calib_id, 2, t] += 1
+
+        p, r, f = self._calc_f_measure(isrl_scores[0][0][-1], isrl_scores[0][1][-1], isrl_scores[0][2][-2])
+        print f
+        print p
+        print r
+        print isrl_scores

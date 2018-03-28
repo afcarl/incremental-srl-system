@@ -27,7 +27,8 @@ class Sent(object):
         self.label_ids = None
         self.label_id_matrix = None
 
-        self.results = None
+        self.prd_indices_sys = None
+        self.prd_props_sys = None
 
     def _make_words(self, sent, is_test, marked_prd=True):
         return [self._make_word(line, is_test, marked_prd) for line in sent]
@@ -47,8 +48,8 @@ class Sent(object):
 
     @staticmethod
     def _set_prd_props(props, marks, prd_indices, is_test=True):
-        if is_test:
-            return []
+#        if is_test:
+#            return []
         props = [prop for prop in map(lambda p: p, zip(*props))]
         all_prd_indices = [i for i in xrange(len(marks)) if marks[i] == 'Y']
         indices = [all_prd_indices.index(p) for p in prd_indices]

@@ -54,12 +54,7 @@ class CoNLL09Saver(Saver):
             print >> f
         f.close()
 
-    def save_isrl_props(self, corpus, vocab_label):
-        """
-        :param corpus: 1D: n_sents; elem=Sent
-        :param vocab_label: Vocab
-            sent.results: 1D: time_steps, 2D: batch_size * n_words(prd) * n_words(arg); elem=label id
-        """
+    def save_isrl_props(self, corpus):
         argv = self.argv
         if argv.output_fn:
             fn = 'conll09.isrl.' + argv.output_fn
@@ -69,26 +64,14 @@ class CoNLL09Saver(Saver):
         f = open(fn + '.txt', 'w')
         for index, sent in enumerate(corpus):
             forms = " ".join(sent.forms)
-            prd_indices = " ".join([str(p_index) for p_index in sent.prd_indices])
+            print >> f, "# %d ||| %s" % (index, forms)
 
-            if sent.n_prds == 0:
-                print >> f, "# %d ||| -1 ||| %s" % (index, forms)
-                continue
+            prds_gold = " ".join([str(p_index) for p_index in sent.prd_indices])
+            prds_sys = " ".join([str(p_index) for p_index in sent.prd_indices_sys])
+            print >> f, "PRDS ||| %s ||| %s" % (str(prds_gold), str(prds_sys))
 
-            print >> f, "# %d ||| %s ||| %s" % (index, prd_indices, forms)
-
-            # 1D: time_steps, 2D: n_words(prd), 3D: n_words(arg); elem=label id
-            results = np.reshape(sent.results, (sent.n_words, sent.n_words, sent.n_words))
-
-            for i, p_index in enumerate(sent.prd_indices):
-                # 1D: time_steps, 2D: n_words(arg); elem;label id
-                props = results[:, p_index, :]
-                final_prop = " ".join([vocab_label.get_word(label_id) for label_id in props[-1]])
-                prd_form = sent.forms[p_index]
-                print >> f, "- %d ||| %s ||| %s" % (p_index, prd_form, final_prop)
-
+            for p_index, props in enumerate(sent.prd_props_sys):
                 for j, prop in enumerate(props):
-                    prop = " ".join([vocab_label.get_word(label_id) for label_id in prop[:j+1]])
-                    print >> f, "-- %d ||| %s" % (p_index, prop)
+                    print >> f, "-- %d ||| %s" % (p_index, " ".join(prop))
             print >> f
         f.close()

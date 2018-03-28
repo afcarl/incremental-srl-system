@@ -178,7 +178,7 @@ class ISRLSystemAPI(ModelAPI):
                 sys.stdout.flush()
 
             if sent.n_words < 2:
-                sent.results = [[0]]
+                sent.prd_props_sys = [['_']]
             else:
                 inputs = []
                 if sent.word_ids_corpus is not None:
@@ -187,12 +187,32 @@ class ISRLSystemAPI(ModelAPI):
                     inputs.append([sent.word_ids_emb])
 
                 shifts, labels = self.predict_shift_and_label_func(*inputs)
-                sent.prd_indices = [i for i, shift in enumerate(shifts.flatten()) if shift > 0]
-                sent.n_prds = len(sent.prd_indices)
-                sent.results = labels
+
+                sent.prd_indices_sys = [i for i, shift in enumerate(shifts.flatten()) if shift > 0]
+                sent.prd_props_sys = self._convert_labels_props(sent.prd_indices_sys, labels)
 
         write('\n\tTime: %f seconds' % (time.time() - start))
         return samples
+
+    def _convert_labels_props(self, prd_indices, label_ids):
+        """
+        :param prd_indices: 1D: n_prds; elem=word index
+        :param label_ids: 1D: time_steps, 2D: n_words(prd) * n_words(arg); elem=label id
+        :return: 1D: n_prds, 2D: n_words, 3D: time_steps; elem=label id
+        """
+        n_words = len(label_ids)
+        label_ids = np.reshape(label_ids, (n_words, n_words, n_words))
+
+        labels = []
+        for p_index in prd_indices:
+            labels_i = []
+            # 1D: time_steps, 2D: n_words(arg); elem;label id
+            props = label_ids[:, p_index, :]
+            for t, prop in enumerate(props):
+                labels_i.append([self.vocab_label.get_word(label_id) for label_id in prop[:t + 1]])
+            labels.append(labels_i)
+
+        return labels
 
     def predict_given_gold_prds(self, batches):
         y = []

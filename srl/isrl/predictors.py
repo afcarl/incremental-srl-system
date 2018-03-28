@@ -1,4 +1,4 @@
-from ..utils import write
+from ..utils import write, ISRLEvaluator
 from ..predictors import Predictor
 
 
@@ -14,8 +14,7 @@ class ISRLPredictor(Predictor):
         write('\n\tLoading Dataset...')
         corpus = self.loader.load(path=argv.test_data,
                                   data_size=argv.data_size)
-        corpus = self.preprocessor.make_sents(corpus=corpus,
-                                              marked_prd=True if argv.action == 'label' else False)
+        corpus = self.preprocessor.make_sents(corpus=corpus)
 
         #################
         # Load init emb #
@@ -175,7 +174,9 @@ class ISRLPredictor(Predictor):
         write('\nPREDICTION START')
         print '\t',
         samples = self.model_api.predict(samples)
-        self.saver.save_isrl_props(samples, self.model_api.vocab_label)
+        self.saver.save_isrl_props(samples)
+        eva = ISRLEvaluator(self.argv)
+        eva.ciss(samples)
 
     def predict_cmd_mode(self, vocab_word_corpus, vocab_word_emb, vocab_label):
         print '\nInput a tokenized sentence.'
@@ -209,6 +210,7 @@ class ISRLPredictor(Predictor):
                     label = vocab_label.get_word(labels[w_index])
                     print '%s/%s' % (form, label),
                 print
+            print
 
             time_step += 1
 
