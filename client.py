@@ -21,6 +21,10 @@ while True:
         break
 
     json_dict = json.loads(response)
-    print json_dict['sent']
-    print json_dict['prds']
-    print json_dict['labels']
+    words = json_dict['sent']
+    prds = [words[p_index] for p_index in json_dict['prds']]
+    print " ".join(words)
+    for i, labels in enumerate(json_dict['labels']):
+        text = ["%s/%s" % (w, l) for w, l in zip(words, labels)]
+        print "PRD: %s %s" % (prds[i], " ".join(text))
+    print
