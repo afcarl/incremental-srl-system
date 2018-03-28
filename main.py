@@ -19,11 +19,11 @@ if __name__ == '__main__':
     ##################
     # Input Datasets #
     ##################
-    parser.add_argument('--train_data', help='path to training data')
-    parser.add_argument('--dev_data', help='path to dev data')
-    parser.add_argument('--test_data', help='path to test data')
-    parser.add_argument('--gold_data', help='path to gold data')
-    parser.add_argument('--pred_data', help='path to pred data')
+    parser.add_argument('--train_data', default=None, help='path to training data')
+    parser.add_argument('--dev_data', default=None, help='path to dev data')
+    parser.add_argument('--test_data', default=None, help='path to test data')
+    parser.add_argument('--gold_data', default=None, help='path to gold data')
+    parser.add_argument('--pred_data', default=None, help='path to pred data')
 
     ###################
     # Dataset Options #
@@ -95,9 +95,14 @@ if __name__ == '__main__':
         from srl.isrl.preprocessors import ISRLPreprocessor
         from srl.isrl.model_api import ISRLSystemAPI
 
-        ISRLPredictor(argv=argv,
-                      preprocessor=ISRLPreprocessor,
-                      model_api=ISRLSystemAPI).run_cmd_mode()
+        predictor = ISRLPredictor(argv=argv,
+                                  preprocessor=ISRLPreprocessor,
+                                  model_api=ISRLSystemAPI)
+
+        if argv.test_data:
+            predictor.run()
+        else:
+            predictor.run_cmd_mode()
 
     elif argv.task == 'lp':
         from srl.trainers import LPTrainer

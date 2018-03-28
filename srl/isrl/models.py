@@ -94,13 +94,9 @@ class ISRLSystem(object):
         :param time_step: int32
         :return: 1D: batch_size; elem=proba
         """
-        # 1D: n_words(arg), 2D: batch_size; 3D: 1; elem=0/1
-        mask_for_rnn = self.shift_model.make_mask_for_rnn(stack_a=stack_a,
-                                                          time_step=time_step)
         # 1D: n_words, 2D: batch_size, 3D: hidden_dim
-        h = self.shift_model.feat_layer.forward(inputs=stack_a.dimshuffle(2, 1, 0),
-                                                mask=mask_for_rnn)
-        return self.shift_model.label_layer.forward(h[-1]).flatten()[0]
+        h = self.shift_model.feat_layer.forward(inputs=stack_a.dimshuffle(2, 1, 0))
+        return self.shift_model.label_layer.forward(h[time_step]).flatten()[0]
 
     @staticmethod
     def get_shift_id(shift_proba):
@@ -208,35 +204,6 @@ class ShiftModel(PIModel):
         stack_a = T.inc_subtensor(stack_a[time_step], x_t)
         stack_p = shift_id_t * T.inc_subtensor(stack_p[time_step, :, time_step], 1) + (1 - shift_id_t) * stack_p
         return stack_a, stack_p
-
-    def get_shift_proba(self, x_t, stack_a, time_step):
-        """
-        :param x_t: 1D: batch_size; elem=feat id
-        :param stack_a: 1D: n_words(arg), 2D: batch_size, 3D: n_inputs; elem=feat id
-        :param time_step: int32
-        :return: 1D: batch_size; elem=proba
-        """
-        stack_a = T.inc_subtensor(stack_a[time_step], x_t)
-        # 1D: n_words(arg), 2D: batch_size; 3D: 1; elem=0/1
-        mask_for_rnn = self.make_mask_for_rnn(stack_a=stack_a,
-                                              time_step=time_step)
-
-        # 1D: n_words, 2D: batch_size, 3D: hidden_dim
-        h = self.feat_layer.forward(inputs=stack_a.dimshuffle(2, 1, 0),
-                                    mask=mask_for_rnn)
-        # 1D: batch_size; elem=proba
-        label_proba = self.label_layer.forward(h[-1]).flatten()
-
-        return label_proba, stack_a, time_step + 1
-
-    @staticmethod
-    def make_mask_for_rnn(stack_a, time_step):
-        """
-        :param stack_a: 1D: n_words(arg), 2D: batch_size, 3D: n_inputs; elem=feat id
-        :return: 1D: n_words(arg), 2D: batch_size, 3D: 1; elem=0/1
-        """
-        zeros = T.zeros(shape=(stack_a.shape[0], stack_a.shape[1], 1), dtype='float32')
-        return T.inc_subtensor(zeros[:time_step + 1], 1)
 
 
 class LabelModel(LPModel):

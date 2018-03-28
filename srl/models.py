@@ -1,7 +1,7 @@
 import theano
 import theano.tensor as T
 
-from srl.nn import Embedding, Dense, BiRNNLayer
+from srl.nn import Embedding, Dense, UniRNNLayer, BiRNNLayer
 
 
 class Model(object):
@@ -244,11 +244,12 @@ class PIFeatureLayer(Model):
         #################
         # Hidden layers #
         #################
-        hidden_layer = BiRNNLayer(input_dim=len(self.input_layers) * x_w_dim,
-                                  output_dim=hidden_dim,
-                                  n_layers=args['n_layers'],
-                                  unit_type=args['rnn_unit'],
-                                  drop_rate=drop_rate)
+        hidden_layer = UniRNNLayer(input_dim=len(self.input_layers) * x_w_dim,
+                                   output_dim=hidden_dim,
+                                   n_layers=args['n_layers'],
+                                   unit_type=args['rnn_unit'],
+                                   connect_type='agg',
+                                   drop_rate=drop_rate)
         self.hidden_layers = [hidden_layer]
         self.layers = self.input_layers + self.hidden_layers
 
@@ -278,7 +279,7 @@ class SigmoidLayer(Model):
         self._set_params()
 
     def _set_layers(self, args):
-        layer = Dense(input_dim=2 * args['hidden_dim'],
+        layer = Dense(input_dim=args['hidden_dim'],
                       output_dim=1,
                       activation='sigmoid')
         self.layers = [layer]

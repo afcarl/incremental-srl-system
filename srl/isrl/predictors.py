@@ -13,8 +13,7 @@ class ISRLPredictor(Predictor):
         ################
         write('\n\tLoading Dataset...')
         corpus = self.loader.load(path=argv.test_data,
-                                  data_size=argv.data_size,
-                                  is_test=False)
+                                  data_size=argv.data_size)
         corpus = self.preprocessor.make_sents(corpus=corpus,
                                               marked_prd=True if argv.action == 'label' else False)
 
@@ -200,7 +199,6 @@ class ISRLPredictor(Predictor):
             print stack_a
             print 'STACK P:'
             print stack_p
-            print 'LABELS:'
             """
             for i, (p, labels) in enumerate(zip(stack_p, label_pred)):
                 if p == 0:

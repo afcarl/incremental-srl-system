@@ -12,17 +12,14 @@ class ISRLPreprocessor(Preprocessor):
         :param marked_prd: whether or not the corpus has annotations of target predicates
         :return 1D: n_sents; elem=Sent
         """
-        is_test = True if len(corpus[0][0]) < 14 else False
-        return [Sent(sent=sent, is_test=is_test, marked_prd=marked_prd) for sent in corpus]
+        return [Sent(sent=sent, is_test=False, marked_prd=marked_prd) for sent in corpus]
 
     @staticmethod
-    def set_sent_params(corpus, vocab_word_corpus, vocab_word_emb, vocab_label, vocab_lemma=None):
+    def set_sent_params(corpus, vocab_word_corpus, vocab_word_emb, vocab_label):
         for sent in corpus:
             sent.set_word_ids(vocab_word_corpus=vocab_word_corpus,
                               vocab_word_emb=vocab_word_emb)
             sent.set_mark_ids()
-            if vocab_lemma:
-                sent.set_lemma_ids(vocab_lemma=vocab_lemma)
             if vocab_label:
                 sent.set_label_id_matrix(vocab_label=vocab_label)
         return corpus

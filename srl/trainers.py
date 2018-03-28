@@ -28,12 +28,10 @@ class Trainer(object):
     def _load_corpus(self, argv):
         write('\n\tLoading Dataset...')
         train_corpus = self.loader.load(path=argv.train_data,
-                                        data_size=argv.data_size,
-                                        is_test=False)
+                                        data_size=argv.data_size)
         if argv.dev_data:
             dev_corpus = self.loader.load(path=argv.dev_data,
-                                          data_size=argv.data_size,
-                                          is_test=False)
+                                          data_size=argv.data_size)
         else:
             dev_corpus = []
         write('\t- Train Sents: %d' % len(train_corpus))

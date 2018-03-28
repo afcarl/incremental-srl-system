@@ -30,17 +30,14 @@ class Loader(object):
 
 
 class CoNLL09Loader(Loader):
-    def load(self, path, data_size=1000000, file_encoding='utf-8', is_test=False):
+    def load(self, path, data_size=1000000, file_encoding='utf-8'):
         corpus = []
         sent = []
         with open(path) as f:
             for line in f:
                 elem = [l.decode(file_encoding) for l in line.rstrip().split()]
                 if len(elem) > 0:
-                    if is_test:
-                        sent.append(elem[:14])
-                    else:
-                        sent.append(elem)
+                    sent.append(elem)
                 else:
                     corpus.append(sent)
                     sent = []
