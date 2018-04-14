@@ -68,7 +68,7 @@ python client.py
 
 ## Retraining models
 ### Input File Format
-- The CoNLL-09 format
+- The CoNLL-09 format, described in detail at https://ufal.mff.cuni.cz/conll2009-st/task-description.html
 - Trial Data is available at https://ufal.mff.cuni.cz/conll2009-st/trial-data.html
 ```
 1       Ms.     ms.     ms.     NNP     NNP     _       _       2       2       TITLE   TITLE   _       _       _
