@@ -64,7 +64,18 @@ python server.py
 python client.py
 ```
 
-### Retrain models
+## Retrain models
+### Input File Format
+- The CoNLL-09 format
+```
+1       Ms.     ms.     ms.     NNP     NNP     _       _       2       2       TITLE   TITLE   _       _       _
+2       Haag    haag    haag    NNP     NNP     _       _       3       3       SBJ     SBJ     _       _       A0
+3       plays   play    play    VBZ     VBZ     _       _       0       0       ROOT    ROOT    Y       play.02 _
+4       Elianti elianti elianti NNP     NNP     _       _       3       3       OBJ     OBJ     _       _       A1
+5       .       .       .       .       .       _       _       3       3       P       P       _       _       _
+```
+
+### Example Command
 - (1) Train a model for predicate identification
 ```
 python main.py --task pi --mode train --train_data path/to/data --dev_data path/to/data --output_fn hoge.pi --save
