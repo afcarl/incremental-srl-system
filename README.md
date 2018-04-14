@@ -11,7 +11,7 @@ git clone https://github.com/hiroki13/incremental-srl-system.git
 * numpy
 * theano
 
-### Example Comand
+### Example Command
 - Command Prompt Mode
 
 Type the following command.
