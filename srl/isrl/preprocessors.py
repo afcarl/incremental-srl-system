@@ -59,4 +59,6 @@ class ISRLPreprocessor(Preprocessor):
         if word_id_emb is not None:
             x.append(word_id_emb)
 
-        return [[x], time_step]
+        if len(x) == 2:
+            return [[x], time_step]
+        return [x, time_step]

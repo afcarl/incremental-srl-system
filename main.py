@@ -77,7 +77,8 @@ if __name__ == '__main__':
     # Loading Options #
     ###################
     parser.add_argument('--load_param', default=None, help='path to params')
-    parser.add_argument('--load_word', default='param/word.txt', help='path to word ids')
+#    parser.add_argument('--load_word', default='param/word.txt', help='path to word ids')
+    parser.add_argument('--load_word', default=None, help='path to word ids')
     parser.add_argument('--load_label', default='param/label.txt', help='path to label ids')
     parser.add_argument('--load_pi_args', default='param/args.pi.pkl.gz', help='path to arg params')
     parser.add_argument('--load_lp_args', default='param/args.lp.pkl.gz', help='path to arg params')

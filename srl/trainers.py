@@ -22,7 +22,7 @@ class Trainer(object):
     def _save_args(self):
         fn = 'param/args.' + self.argv.task
         if self.argv.output_fn:
-            fn = self.argv.output_fn
+            fn = 'param/args.%s.%s' % (self.argv.task, self.argv.output_fn)
         self.saver.save_pkl_gz_format(fn=fn, data=self.argv)
 
     def _load_corpus(self, argv):
@@ -68,7 +68,7 @@ class Trainer(object):
             if vocab_word_corpus:
                 fn = 'param/word'
                 if argv.output_fn:
-                    fn = 'param/' + argv.output_fn
+                    fn = 'param/word.%s.%s' % (self.argv.task, self.argv.output_fn)
 
                 values, keys = map(lambda x: x, zip(*enumerate(vocab_word_corpus.i2w)))
                 self.saver.save_key_value_format(fn=fn, keys=keys, values=values)
@@ -91,7 +91,7 @@ class Trainer(object):
         if argv.save:
             fn = 'param/label'
             if argv.output_fn:
-                fn = 'param/' + argv.output_fn
+                fn = 'param/label.%s.%s' % (self.argv.task, self.argv.output_fn)
 
             values, keys = map(lambda x: x, zip(*enumerate(vocab_label_train.i2w)))
             self.saver.save_key_value_format(fn=fn, keys=keys, values=values)

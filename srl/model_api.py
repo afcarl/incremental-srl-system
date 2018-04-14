@@ -59,7 +59,7 @@ class ModelAPI(object):
     def save_params(self):
         argv = self.argv
         if argv.output_fn:
-            fn = 'param/param.' + argv.output_fn
+            fn = 'param/param.%s.%s' % (self.argv.task, self.argv.output_fn)
         else:
             fn = 'param/param.' + argv.task
 
