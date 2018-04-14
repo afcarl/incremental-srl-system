@@ -63,3 +63,20 @@ python server.py
 ```
 python client.py
 ```
+
+### Retrain models
+- (1) Train a model for predicate identification
+```
+python main.py --task pi --mode train --train_data path/to/data --dev_data path/to/data--unuse_word_corpus --output_fn hoge.pi --save
+```
+
+- (2) Train a model for label prediction
+```
+python main.py --task lp --mode train --train_data path/to/data --dev_data path/to/data--unuse_word_corpus --output_fn hoge --save
+```
+
+- (3) Use the trained models
+```
+python main.py --load_word param/word.lp.hoge.txt --load_label param/label.lp.hoge.txt --load_pi_args param/args.pi.hoge.pkl.gz --load_lp_args param/args.lp.hoge.pkl.gz --load_pi_param param/param.pi.hoge.pkl.gz --load_lp_param param/param.lp.hoge.pkl.gz 
+```
+
