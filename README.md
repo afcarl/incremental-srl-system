@@ -66,7 +66,7 @@ python client.py
 ```
 </br>
 
-## Retrain models
+## Retraining models
 ### Input File Format
 - The CoNLL-09 format
 ```
