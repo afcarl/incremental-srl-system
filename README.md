@@ -67,12 +67,12 @@ python client.py
 ### Retrain models
 - (1) Train a model for predicate identification
 ```
-python main.py --task pi --mode train --train_data path/to/data --dev_data path/to/data--unuse_word_corpus --output_fn hoge.pi --save
+python main.py --task pi --mode train --train_data path/to/data --dev_data path/to/data --output_fn hoge.pi --save
 ```
 
 - (2) Train a model for label prediction
 ```
-python main.py --task lp --mode train --train_data path/to/data --dev_data path/to/data--unuse_word_corpus --output_fn hoge --save
+python main.py --task lp --mode train --train_data path/to/data --dev_data path/to/data --output_fn hoge --save
 ```
 
 - (3) Use the trained models
